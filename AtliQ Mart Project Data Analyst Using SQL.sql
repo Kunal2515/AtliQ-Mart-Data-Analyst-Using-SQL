@@ -7,31 +7,47 @@ SELECT * FROM retail_events_db.fact_events;
 -- Q1. Which are the top 10 stores in term of incremental revenue (IR) generated from promotion ?
 
 SELECT 
-	store_id
-    base_price, 
-    `quantity_sold(before_promo)`, 
-    `quantity_sold(after_promo)`,
-    base_price * (`quantity_sold(after_promo)` - `quantity_sold(before_promo)`) AS incremental_revenue
+	store_id,
+    SUM(base_price * (`quantity_sold(after_promo)` - `quantity_sold(before_promo)`)) AS total_incremental_revenue
 FROM retail_events_db.fact_events
-ORDER BY incremental_revenue DESC
+GROUP BY
+    store_id
+ORDER BY total_incremental_revenue DESC
 LIMIT 10;
 
 -- ----------------------------------------------------------X-------------------------------------------
 -- Q2. Which are the bottom 10 stores when it comes to incremental sold unit (ISU) during the promotional period?
 
 SELECT
-	store_id
-    base_price, 
-    `quantity_sold(before_promo)`, 
-    `quantity_sold(after_promo)`,
-    `quantity_sold(after_promo)` - `quantity_sold(before_promo)` AS incremental_sold_units
-FROM retail_events_db.fact_events
-ORDER BY incremental_sold_units ASC
+    store_id,
+    SUM(`quantity_sold(after_promo)` - `quantity_sold(before_promo)`) AS total_incremental_sold_units
+FROM
+    retail_events_db.fact_events
+GROUP BY
+    store_id
+ORDER BY
+    total_incremental_sold_units ASC
 LIMIT 10;
+
 
 -- --------------------------------------------X--------------------------------------
 -- How does the performance of stores vary by city? Are there any common characteristics among the top-performing stores that could be leveraged across other stores ?
+
+SELECT
+    ds.city,
+    fe.store_id,
+    SUM(base_price * (`quantity_sold(after_promo)` - `quantity_sold(before_promo)`)) AS total_incremental_revenue
+FROM
+    retail_events_db.dim_stores ds
+JOIN 
+    retail_events_db.fact_events fe ON ds.store_id = fe.store_id
+GROUP BY
+    ds.city,
+    fe.store_id;
+
+
 -- Q3.a Top 10 by city IR
+
 SELECT 
 	fe.store_id,
     ds.city,
