@@ -43,8 +43,9 @@ JOIN
     retail_events_db.fact_events fe ON ds.store_id = fe.store_id
 GROUP BY
     ds.city,
-    fe.store_id;
-
+    fe.store_id
+ORDER BY total_incremental_revenue DESC
+LIMIT 10;
 
 -- Q3.a Top 10 by city IR
 
@@ -111,6 +112,7 @@ LIMIT 2;
 
 -- --------------------------------------------X--------------------------------------
 -- Q6. Which Promotion strike the best balance incremental sold Units and maintaining healthy margins ?
+
 SELECT
     promo_type,
     SUM(`quantity_sold(after_promo)` - `quantity_sold(before_promo)`) AS total_incremental_sold_units,
@@ -142,6 +144,19 @@ GROUP BY
 -- --------------------------------------------X--------------------------------------
 -- Q.8 Which product categories saw the most significant lift in sales from the promotions ?
 
+SELECT
+    dp.category,
+    SUM(`quantity_sold(after_promo)` - `quantity_sold(before_promo)`) AS lift_in_sales
+FROM
+    retail_events_db.dim_products dp
+JOIN 
+    retail_events_db.fact_events fe ON dp.product_code = fe.product_code
+GROUP BY
+    dp.category
+ORDER BY
+    lift_in_sales DESC;
+
+-- With product name
 SELECT
     dp.product_name,
     dp.category,
